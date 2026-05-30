@@ -1,0 +1,36 @@
+{
+  "dataset": "/Users/tim/Documents/stroller-rag-eval/data/eval/stroller_qa.csv",
+  "examples_evaluated": 110,
+  "answerable_examples": 101,
+  "refusal_examples": 9,
+  "judge_examples": 101,
+  "judge_scope": "answerable_only",
+  "top_k": 8,
+  "records": "reports/eval_topk8_hybrid_full/normalized_records.jsonl",
+  "answerable_records": "reports/eval_topk8_hybrid_full/answerable_records.jsonl",
+  "refusal_records": "reports/eval_topk8_hybrid_full/refusal_records.jsonl",
+  "reports": {
+    "deterministic": "reports/eval_topk8_hybrid_full/deterministic_results.csv",
+    "ragas": "reports/eval_topk8_hybrid_full/ragas_results.csv",
+    "deepeval": "reports/eval_topk8_hybrid_full/deepeval_results.csv"
+  },
+  "metrics": {
+    "deterministic": {
+      "expected_source_retrieval_pass_rate": 1.0,
+      "source_filter_purity_pass_rate": 1.0,
+      "refusal_behavior_pass_rate": 1.0
+    },
+    "ragas": {
+      "answer_relevancy": 0.912,
+      "context_precision": 0.907,
+      "faithfulness": 0.9766,
+      "context_recall": 0.9026
+    },
+    "deepeval": {
+      "Correctness [GEval]": {
+        "average_score": 0.7744433030012436,
+        "pass_rate": 0.8217821782178217
+      }
+    }
+  }
+}

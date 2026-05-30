@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Virtual environments
+.venv/
+venv/
+
+# Environment
+.env
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+
+# Local vector stores and generated reports
+data/chroma/
+reports/**
+!reports/
+!reports/.gitkeep
+!reports/ragas/
+!reports/ragas/.gitkeep
+!reports/deepeval/
+!reports/deepeval/.gitkeep
+!reports/deterministic/
+!reports/deterministic/.gitkeep
+!reports/eval_topk8_hybrid_full/
+reports/eval_topk8_hybrid_full/*
+!reports/eval_topk8_hybrid_full/summary.json
+!reports/eval_topk8_hybrid_full/summary_notes.md
+
+# DeepEval local artifacts
+.deepeval/
