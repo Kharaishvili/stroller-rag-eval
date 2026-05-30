@@ -40,6 +40,14 @@ questions.
 | RAGAS | Context recall | 0.9026 |
 | DeepEval | Correctness pass rate | 82.2% |
 
+DeepEval is the intentionally strict secondary signal. Its lower score is not a
+retrieval or refusal failure: deterministic contracts are at 100.0%, and RAGAS
+faithfulness is 0.9766. Manual review of the failed DeepEval rows shows a mix of
+judge false negatives, concise answers that omit adjacent expected details, and
+real completeness gaps on multi-condition safety questions. See the
+[evaluation notes](reports/eval_topk8_hybrid_full/summary_notes.md) for examples
+and next steps.
+
 ```mermaid
 flowchart LR
   A["Synthetic stroller manuals"] --> B["Markdown loader"]
@@ -98,7 +106,8 @@ Interpretation:
 
 - deterministic checks are hard pass/fail contracts
 - RAGAS is the primary judge-model signal for retrieval and groundedness
-- DeepEval correctness is a stricter secondary semantic check
+- DeepEval correctness is a stricter secondary semantic check, mainly useful for
+  finding answer-completeness gaps
 
 ## How The Eval Works
 

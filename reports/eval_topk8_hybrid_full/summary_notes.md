@@ -41,6 +41,37 @@ RAGAS scores indicate strong retrieval-grounded answer quality. Faithfulness is 
 
 DeepEval is stricter than RAGAS on checklist and safety answers. Several DeepEval failures are semantically correct but shorter than the expected answer, or omit extra safety conditions that the expected answer includes.
 
+## DeepEval Failure Review
+
+DeepEval is the weakest headline metric: 82.2% pass rate with a 0.7744 average
+score. That is expected for this baseline because DeepEval is acting as a strict
+answer-completeness reviewer rather than a hard retrieval or refusal contract.
+The deterministic checks still pass at 100.0%, and RAGAS faithfulness is 0.9766.
+
+The row-level DeepEval run had 18 failures out of 101 answerable examples. Of
+those failures, 16 scored between 0.60 and 0.70, just below the 0.70 threshold.
+Manual review showed three main patterns:
+
+- Threshold and judge artifacts: `trailpro_023` answered the full pre-jogging
+  checklist, but DeepEval still scored it 0.4016 despite matching the expected
+  requirements closely.
+- Concise but incomplete safety answers: `citylite_018` correctly refused sand
+  and gravel use, but the expected answer also listed mud, snow, rocky paths, and
+  uneven trails.
+- Real completeness gaps: `trailpro_032` answered that jogging with a
+  9-month-old is allowed if the front wheel is locked, but it should also mention
+  the other jogging requirements: weight limit, harness, smooth paved path, and
+  wrist strap.
+
+Next improvements:
+
+- Tune the answer prompt to include all retrieved safety conditions for
+  checklist-style and "yes, but only if" questions.
+- Add a small regression set for multi-condition safety answers so concise
+  answers do not pass when they omit important constraints.
+- Keep DeepEval as a secondary review signal rather than the release gate; use
+  deterministic checks for source routing, source purity, and refusal behavior.
+
 ## Report Files
 
 - `summary.json`: Run metadata and aggregate metrics.
