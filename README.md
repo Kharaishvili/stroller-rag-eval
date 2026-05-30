@@ -1,5 +1,7 @@
 # Stroller RAG Evaluation
 
+[![CI](https://github.com/Kharaishvili/stroller-rag-eval/actions/workflows/ci.yml/badge.svg)](https://github.com/Kharaishvili/stroller-rag-eval/actions/workflows/ci.yml)
+
 An end-to-end evaluation framework for a safety-sensitive RAG pipeline over
 synthetic product manuals. It checks whether retrieval stays on the right
 manual, whether answers are grounded in retrieved context, and whether
@@ -19,6 +21,42 @@ harness:
 - RAGAS judge metrics for retrieval and groundedness
 - DeepEval correctness checks as a stricter secondary signal
 - `make eval` as one command that produces reproducible eval reports
+
+## Dashboard
+
+Current baseline: `top_k=8` hybrid retrieval across 110 synthetic product-manual
+questions.
+
+| Area | Signal | Result |
+| --- | --- | ---: |
+| Dataset | Examples evaluated | 110 |
+| Dataset | Answerable / refusal split | 101 / 9 |
+| Retrieval | Expected source retrieval | 100.0% |
+| Retrieval | Source filter purity | 100.0% |
+| Safety | Refusal behavior | 100.0% |
+| RAGAS | Faithfulness | 0.9766 |
+| RAGAS | Answer relevancy | 0.9120 |
+| RAGAS | Context precision | 0.9070 |
+| RAGAS | Context recall | 0.9026 |
+| DeepEval | Correctness pass rate | 82.2% |
+
+```mermaid
+flowchart LR
+  A["Synthetic stroller manuals"] --> B["Markdown loader"]
+  B --> C["Chunking"]
+  C --> D["Chroma vector store"]
+  D --> E["Hybrid retriever"]
+  E --> F["Grounded answer"]
+  F --> G["Deterministic contracts"]
+  F --> H["RAGAS metrics"]
+  F --> I["DeepEval correctness"]
+```
+
+Artifacts:
+
+- [Machine-readable summary](reports/eval_topk8_hybrid_full/summary.json)
+- [Human-readable evaluation notes](reports/eval_topk8_hybrid_full/summary_notes.md)
+- [Evaluation dataset](data/eval/stroller_qa.csv)
 
 ## Current Baseline
 
