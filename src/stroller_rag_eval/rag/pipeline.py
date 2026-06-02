@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import cast
 
 from langchain_core.documents import Document
 
@@ -10,7 +11,8 @@ from stroller_rag_eval.rag.chunking import chunk_documents
 from stroller_rag_eval.config import RagConfig, require_openai_api_key
 from stroller_rag_eval.rag.document_loader import load_markdown_documents
 from stroller_rag_eval.rag.generator import generate_answer
-from stroller_rag_eval.rag.retriever import retrieve_documents
+from stroller_rag_eval.rag.manuals import infer_metadata_filter_from_question
+from stroller_rag_eval.rag.retriever import MetadataFilter, VectorStore, retrieve_documents
 from stroller_rag_eval.rag.vector_store import build_vector_store, load_vector_store
 
 
@@ -61,17 +63,22 @@ def answer_question(
     question: str,
     config: RagConfig,
     *,
-    metadata_filter: dict[str, object] | None = None,
+    metadata_filter: MetadataFilter | None = None,
 ) -> RagResponse:
     """Retrieve evidence and generate an answer for a question"""
 
     require_openai_api_key(config)
-    vector_store = load_vector_store(config)
+    vector_store = cast(VectorStore, load_vector_store(config))
+    effective_filter = (
+        metadata_filter
+        if metadata_filter is not None
+        else infer_metadata_filter_from_question(question)
+    )
     retrieved_documents = retrieve_documents(
         question,
         vector_store,
         top_k=config.top_k,
-        metadata_filter=metadata_filter,
+        metadata_filter=effective_filter,
     )
     answer = generate_answer(question, retrieved_documents, config)
 

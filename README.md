@@ -242,12 +242,19 @@ Persist directory: .../data/chroma
 make ask QUESTION="What is the maximum child weight for CityLite?"
 ```
 
+You can also pass the question as positional text:
+
+```bash
+make ask "Can I attach a bassinet to DuoRide?"
+```
+
 The script prints retrieved chunks first, then the final generated answer.
 
 Useful option:
 
 ```bash
 python scripts/run_rag.py "Can I hang a backpack from DuoRide?" --top-k 8
+python scripts/run_rag.py "What is the maximum child weight?" --manual duoride
 ```
 
 ## Run The Full Eval Suite (Judge Models, 20-45 Minutes)

@@ -9,6 +9,7 @@ from dataclasses import replace
 from langchain_core.documents import Document
 
 from stroller_rag_eval.config import get_config
+from stroller_rag_eval.rag.manuals import manual_choices, metadata_filter_for_manual
 from stroller_rag_eval.rag.pipeline import answer_question
 
 
@@ -28,6 +29,11 @@ def parse_args() -> argparse.Namespace:
         type=int,
         help="Number of chunks to retrieve.",
     )
+    parser.add_argument(
+        "--manual",
+        choices=manual_choices(),
+        help="Restrict retrieval to a product manual.",
+    )
     return parser.parse_args()
 
 
@@ -43,7 +49,11 @@ def main() -> None:
     if args.top_k:
         config = replace(config, top_k=args.top_k)
 
-    response = answer_question(question, config)
+    response = answer_question(
+        question,
+        config,
+        metadata_filter=metadata_filter_for_manual(args.manual),
+    )
     _print_retrieved_chunks(response.retrieved_documents)
     print("\nFinal answer")
     print(response.answer)

@@ -35,14 +35,14 @@ def load_eval_examples(path: Path, *, limit: int | None = None) -> list[EvalExam
         raise ValueError("Evaluation dataset must include a 'question' column.")
 
     examples: list[EvalExample] = []
-    for row_index, row in dataframe.iterrows():
+    for row_number, (_, row) in enumerate(dataframe.iterrows(), start=1):
         question = str(row["question"]).strip()
         if not question:
             continue
 
         examples.append(
             EvalExample(
-                example_id=_value_or_default(row.get("id"), f"row-{row_index + 1}"),
+                example_id=_value_or_default(row.get("id"), f"row-{row_number}"),
                 manual=_optional_string(row.get("manual")),
                 question=question,
                 ground_truth=_optional_string(row.get("ground_truth")),
@@ -59,16 +59,25 @@ def load_eval_examples(path: Path, *, limit: int | None = None) -> list[EvalExam
 
 
 def _optional_string(value: object) -> str | None:
+    if value is None:
+        return None
+
     text = str(value).strip()
     return text or None
 
 
 def _value_or_default(value: object, default: str) -> str:
+    if value is None:
+        return default
+
     text = str(value).strip()
     return text or default
 
 
 def _split_list(value: object) -> tuple[str, ...]:
+    if value is None:
+        return ()
+
     text = str(value).strip()
     if not text:
         return ()
@@ -77,6 +86,9 @@ def _split_list(value: object) -> tuple[str, ...]:
 
 
 def _parse_bool(value: object, *, default: bool = False) -> bool:
+    if value is None:
+        return default
+
     text = str(value).strip().lower()
     if not text:
         return default

@@ -4,11 +4,35 @@ from __future__ import annotations
 
 import re
 from collections import Counter
-from typing import Any
+from typing import Any, Protocol, TypeAlias
 
-from langchain_chroma import Chroma
+from chromadb.types import Where
 from langchain_core.documents import Document
 
+
+MetadataFilter: TypeAlias = Where
+
+
+class DocumentRetriever(Protocol):
+    """Retriever interface used by hybrid retrieval"""
+
+    def invoke(self, question: str) -> list[Document]:
+        ...
+
+
+class VectorStore(Protocol):
+    """Vector-store interface used by hybrid retrieval"""
+
+    def as_retriever(self, search_kwargs: dict[str, object]) -> DocumentRetriever:
+        ...
+
+    def get(
+        self,
+        *,
+        where: MetadataFilter | None = None,
+        include: list[str] | None = None,
+    ) -> dict[str, Any]:
+        ...
 
 STOPWORDS = {
     "about",
@@ -50,10 +74,10 @@ MIN_KEYWORD_SCORE = 2.0
 
 def retrieve_documents(
     question: str,
-    vector_store: Chroma,
+    vector_store: VectorStore,
     *,
     top_k: int,
-    metadata_filter: dict[str, object] | None = None,
+    metadata_filter: MetadataFilter | None = None,
 ) -> list[Document]:
     """Retrieve relevant chunks with vector search plus keyword fallback"""
 
@@ -74,9 +98,9 @@ def retrieve_documents(
 
 def _keyword_fallback_documents(
     question: str,
-    vector_store: Chroma,
+    vector_store: VectorStore,
     *,
-    metadata_filter: dict[str, object] | None,
+    metadata_filter: MetadataFilter | None,
     top_k: int,
 ) -> list[Document]:
     query_terms = _keyword_terms(question)

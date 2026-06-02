@@ -3,8 +3,9 @@ from pathlib import Path
 from langchain_core.documents import Document
 
 from stroller_rag_eval.config import RagConfig
+from stroller_rag_eval.rag.manuals import infer_metadata_filter_from_question
 from stroller_rag_eval.rag.pipeline import answer_question
-from stroller_rag_eval.rag.retriever import retrieve_documents
+from stroller_rag_eval.rag.retriever import MetadataFilter, retrieve_documents
 
 
 class FakeDocument:
@@ -99,6 +100,55 @@ def test_answer_question_passes_metadata_filter(monkeypatch, tmp_path):
     assert observed_filter == {"file_name": "citylite_manual.md"}
 
 
+def test_answer_question_infers_manual_filter_from_question(monkeypatch, tmp_path):
+    config = RagConfig(
+        project_root=tmp_path,
+        source_dirs=(tmp_path / "data",),
+        chroma_persist_dir=tmp_path / "chroma",
+        collection_name="test_collection",
+        embedding_model="fake-embedding-model",
+        chat_model="fake-chat-model",
+        temperature=0.0,
+        chunk_size=800,
+        chunk_overlap=120,
+        top_k=2,
+        openai_api_key="test-key",
+    )
+    observed_filter = None
+
+    monkeypatch.setattr(
+        "stroller_rag_eval.rag.pipeline.load_vector_store",
+        lambda loaded_config: object(),
+    )
+
+    def fake_retrieve_documents(question, vector_store, top_k, metadata_filter=None):
+        nonlocal observed_filter
+        observed_filter = metadata_filter
+        return []
+
+    monkeypatch.setattr(
+        "stroller_rag_eval.rag.pipeline.retrieve_documents",
+        fake_retrieve_documents,
+    )
+    monkeypatch.setattr(
+        "stroller_rag_eval.rag.pipeline.generate_answer",
+        lambda question, documents, loaded_config: "A grounded answer.",
+    )
+
+    answer_question("Can I attach a bassinet to DuoRire?", config)
+
+    assert observed_filter == {"file_name": "duoride_double_manual.md"}
+
+
+def test_infer_metadata_filter_from_question_matches_known_manual_aliases():
+    assert infer_metadata_filter_from_question(
+        "What is the maximum child weight for TrailPro?"
+    ) == {"file_name": "trailpro_jogger_manual.md"}
+    assert infer_metadata_filter_from_question(
+        "Can I attach a bassinet to DuoRire?"
+    ) == {"file_name": "duoride_double_manual.md"}
+
+
 def test_retrieve_documents_adds_keyword_fallback_hit():
     vector_document = Document(
         page_content="## 13. Canopy Use\n\nUse the canopy for shade.",
@@ -114,14 +164,26 @@ def test_retrieve_documents_adds_keyword_fallback_hit():
     )
 
     class FakeRetriever:
-        def invoke(self, question):
+        def invoke(self, question: str) -> list[Document]:
+            assert question == "Can I hang a backpack from the DuoRide Double handlebar?"
             return [vector_document]
 
     class FakeVectorStore:
-        def as_retriever(self, search_kwargs):
+        def as_retriever(self, search_kwargs: dict[str, object]) -> FakeRetriever:
+            assert search_kwargs == {
+                "k": 2,
+                "filter": {"file_name": "duoride_double_manual.md"},
+            }
             return FakeRetriever()
 
-        def get(self, where=None, include=None):
+        def get(
+            self,
+            *,
+            where: MetadataFilter | None = None,
+            include: list[str] | None = None,
+        ) -> dict[str, object]:
+            assert where == {"file_name": "duoride_double_manual.md"}
+            assert include == ["documents", "metadatas"]
             return {
                 "ids": ["vector", "keyword"],
                 "documents": [

@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any
+from typing import cast
 
 import pandas as pd
 from langchain_core.documents import Document
@@ -13,6 +13,7 @@ from langchain_core.documents import Document
 from stroller_rag_eval.config import RagConfig
 from stroller_rag_eval.evaluation.dataset import EvalExample
 from stroller_rag_eval.rag.pipeline import answer_question
+from stroller_rag_eval.rag.retriever import MetadataFilter
 
 
 @dataclass(frozen=True)
@@ -29,7 +30,7 @@ class RagEvalRecord:
     expected_sources: list[str]
     tags: list[str]
     must_refuse: bool
-    retrieval_filter: dict[str, Any] | None
+    retrieval_filter: MetadataFilter | None
 
 
 def run_rag_over_examples(
@@ -115,7 +116,7 @@ def _document_sources(documents: list[Document]) -> list[str]:
     return sources
 
 
-def metadata_filter_for_example(example: EvalExample) -> dict[str, Any] | None:
+def metadata_filter_for_example(example: EvalExample) -> MetadataFilter | None:
     """Build a Chroma metadata filter from expected source file names"""
 
     file_names = sorted(
@@ -128,9 +129,9 @@ def metadata_filter_for_example(example: EvalExample) -> dict[str, Any] | None:
     if not file_names:
         return None
     if len(file_names) == 1:
-        return {"file_name": file_names[0]}
+        return cast(MetadataFilter, {"file_name": file_names[0]})
 
-    return {"file_name": {"$in": file_names}}
+    return cast(MetadataFilter, {"file_name": {"$in": file_names}})
 
 
 def _source_file_name(source: str) -> str:

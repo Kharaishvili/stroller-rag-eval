@@ -28,6 +28,25 @@ def test_load_eval_examples_reads_semicolon_lists(tmp_path):
     assert examples[1].must_refuse is True
 
 
+def test_load_eval_examples_defaults_missing_optional_columns(tmp_path):
+    dataset_path = tmp_path / "qa.csv"
+    dataset_path.write_text(
+        "question\n"
+        "What is covered?\n",
+        encoding="utf-8",
+    )
+
+    examples = load_eval_examples(dataset_path)
+
+    assert len(examples) == 1
+    assert examples[0].example_id == "row-1"
+    assert examples[0].manual is None
+    assert examples[0].ground_truth is None
+    assert examples[0].expected_sources == ()
+    assert examples[0].tags == ()
+    assert examples[0].must_refuse is False
+
+
 def test_records_to_ragas_rows_preserves_required_columns():
     records = [
         RagEvalRecord(
